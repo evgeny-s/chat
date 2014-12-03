@@ -1,0 +1,7 @@
+parameters:
+#    cabinet_chat.example.class: Cabinet\ChatBundle\Example
+
+services:
+#    cabinet_chat.example:
+#        class: %cabinet_chat.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]

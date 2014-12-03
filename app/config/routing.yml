@@ -1,0 +1,4 @@
+cabinet_chat:
+    resource: "@CabinetChatBundle/Resources/config/routing.yml"
+    prefix:   /
+
