@@ -4,3 +4,10 @@ cabinet_chat:
 
 fos_user:
     resource: "@FOSUserBundle/Resources/config/routing/all.xml"
+
+root:
+    path: /
+    defaults:
+        _controller: FrameworkBundle:Redirect:redirect
+        route: _cabinet_index
+        permanent: true

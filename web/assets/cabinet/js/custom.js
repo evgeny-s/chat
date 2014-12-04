@@ -126,4 +126,10 @@ jQuery(document).ready(function() {
       }
    }
 
+   /* menu highlight */
+   var current_route = $('body').attr('current_route');
+   if (current_route) {
+      $("." + current_route).addClass('active');
+   }
+
 });
