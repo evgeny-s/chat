@@ -15,11 +15,20 @@ class MessagesController extends Controller
 {
 
     /**
-     * @Route("/messages/{name}", name="_cabinet_chat")
-     * @Template("ChatBundle:Messages:index.html.twig")
+     * @Route("/messages", name="_cabinet_chat")
+     * @Template("CabinetChatBundle:Messages:messages.html.twig")
      */
-    public function messagesAction($name)
+    public function messagesAction()
     {
-        return $this->render('CabinetChatBundle:Messages:index.html.twig', array('name' => $name));
+        return array('');
+    }
+
+    /**
+     * @Route("/", name="_cabinet_index")
+     * @Template("CabinetChatBundle:Common:index.html.twig")
+     */
+    public function indexAction()
+    {
+        return array('');
     }
 }
