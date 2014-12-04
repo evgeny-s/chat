@@ -20,7 +20,6 @@
         "sensio/generator-bundle": "2.3.*",
         "incenteev/composer-parameter-handler": "~2.0",
         "friendsofsymfony/user-bundle": "~2.0@dev",
-        "leaseweb/secure-controller-bundle": "*",
         "knplabs/knp-paginator-bundle": "~2.4",
         "egeloen/ckeditor-bundle": "~2.0"
     },

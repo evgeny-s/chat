@@ -32,12 +32,10 @@
                 <a class="pull-left" href="#">
                     <img class="img-circle img-online" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
                 </a>
-                <form action="" method="post">
-                    {{ form_errors(form) }}
-                    {{ form_widget(form._token) }}
+                <form action="" method="post" id="message_form">
                     <div class="media-body">
                         {{ form_row(form.text) }}
-                        <button class="btn btn-primary btn-sm mt10"><i class="fa fa-send mr5"></i> Send</button>
+                        <button class="btn btn-primary btn-sm mt10" id="send_message_button"><i class="fa fa-send mr5"></i> Send</button>
                     </div>
                 </form>
             </div>
@@ -47,7 +45,20 @@
 {% block javascripts %}
         <script>
             $(function() {
-                console.log('test...');
+                $("#send_message_button").click(function(e) {
+                    e.preventDefault();
+                    for ( instance in CKEDITOR.instances ) {
+                        CKEDITOR.instances[instance].updateElement();
+                    }
+                    $.ajax({
+                        data: $('#message_form').parents('form').serialize(),
+                        url: "{{ path('_cabinet_messages_item', {'id' : id}) }}",
+                        type: 'post'
+                    })
+                            .success(function() {
+                                console.log('sent!')
+                            });
+                });
             });
         </script>
 {% endblock %}
