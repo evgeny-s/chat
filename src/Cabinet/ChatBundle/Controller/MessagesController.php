@@ -25,7 +25,13 @@ class MessagesController extends Controller
      */
     public function messagesAction()
     {
-        return array('');
+        $current_user = $this->getUser();
+        $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
+        $users = $messages_repo->getListSenders($current_user);
+
+        return array(
+            'users' => $users
+        );
     }
 
     /**
@@ -72,6 +78,36 @@ class MessagesController extends Controller
             'id'       => $id
         );
     }
+
+    /**
+     * @Route("/messages/item/get_last/{id}", name="_cabinet_messages_get_last")
+     */
+    public function getLastAction($id, Request $request)
+    {
+        $user_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:User');
+        $user = $user_repo->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException('User does not exist!');
+        }
+        $current_user = $this->getUser();
+        $last_id = $request->get('last_id');
+
+        $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
+        $oMessages = $messages_repo->getBySenderAndRecipient($user, $current_user, $last_id);
+
+        if (count($oMessages)) {
+            $result = array(
+                "status" => true,
+                "html" => $this->renderView("CabinetChatBundle:Messages:messages_block.html.twig", array("messages" => $oMessages))
+            );
+        } else {
+            $result = array("status" => false);
+        }
+
+        return new JsonResponse($result);
+    }
+
+
 
     /**
      * @Route("/", name="_cabinet_index")

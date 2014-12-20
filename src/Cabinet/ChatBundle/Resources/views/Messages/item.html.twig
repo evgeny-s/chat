@@ -1,64 +1,104 @@
 {% extends "::Cabinet/layout.html.twig" %}
 {% block content %}
-    <div class="row">
-        <div class="col-sm-9 col-md-9 col-lg-10">
+<div class="row">
+    <div class="col-sm-9 col-md-9 col-lg-10">
 
-            <h4>Messages list of this sender</h4>
+        <h4>Messages list of this sender</h4>
 
-            <div class="panel-group panel-group-msg" id="accordion">
-                {% for m in messages %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <span class="time text-muted pull-right"><i class="fa fa-paperclip mr5"></i>{{ m.createdAt|date("H:i:s d-m-Y") }}</span>
-                                <a data-toggle="collapse" href="#collapseOne">
-                                    <img src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" class="img img-online img-circle mr5" alt="" >
-                                    <small>{{ m.Sender.username }}</small>
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseOne" class="panel-collapse collapse in">
-                            <div class="panel-body">
-                                {{ m.text|raw }}
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    <div>Empty list</div>
-                {% endfor %}
-            </div><!-- panel-group -->
+        <div class="panel-group panel-group-msg message_collection" id="accordion">
+            {% include "CabinetChatBundle:Messages:messages_block.html.twig" with {messages: messages} %}
+        </div>
 
-            <div class="media msg-reply">
-                <a class="pull-left" href="#">
-                    <img class="img-circle img-online" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
-                </a>
-                <form action="" method="post" id="message_form">
-                    <div class="media-body">
-                        {{ form_row(form.text) }}
-                        <button class="btn btn-primary btn-sm mt10" id="send_message_button"><i class="fa fa-send mr5"></i> Send</button>
-                    </div>
-                </form>
+        <div class="media msg-reply">
+            <a class="pull-left" href="#">
+                <img class="img-circle img-online" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
+            </a>
+            <form action="" method="post" id="message_form">
+                <div class="media-body">
+                    {{ form_row(form.text) }}
+                    <button class="btn btn-primary btn-sm mt10" id="send_message_button"><i class="fa fa-send mr5"></i> Send</button>
+                </div>
+            </form>
+            <div class="disabling_block hidden">
+
             </div>
         </div>
-{% endblock %}
+    </div>
+    {% endblock %}
 
-{% block javascripts %}
+    {% block javascripts %}
         <script>
             $(function() {
                 $("#send_message_button").click(function(e) {
+                    var disabling_block = $(".disabling_block");
+                    disabling_block.removeClass("hidden");
+
                     e.preventDefault();
-                    for ( instance in CKEDITOR.instances ) {
+                    for ( var instance in CKEDITOR.instances ) {
                         CKEDITOR.instances[instance].updateElement();
                     }
                     $.ajax({
-                        data: $('#message_form').parents('form').serialize(),
+                        data: $('#message_form').serialize(),
                         url: "{{ path('_cabinet_messages_item', {'id' : id}) }}",
                         type: 'post'
                     })
                             .success(function() {
-                                console.log('sent!')
+                                disabling_block.addClass("hidden");
+                                CKEDITOR.instances[instance].setData('');
                             });
                 });
+
+                setTimeout(update_messages, 1000);
+
+                $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
+
+
             });
+
+            update_messages = function() {
+                var last_id = $(".message_collection .message_block").last().attr('m_id');
+
+                if (! last_id) {
+                    last_id = 0;
+                }
+
+                $.ajax({
+                    data: {
+                        last_id: last_id
+                    },
+                    url: "{{ path('_cabinet_messages_get_last', {'id' : id}) }}",
+                    type: "post"
+                })
+                        .success(function(data) {
+                            if (Boolean(data['status'])) {
+                                $(data['html']).appendTo($(".message_collection"));
+                            }
+
+                            setTimeout(update_messages, 1000);
+                        });
+            }
         </script>
+    {% endblock %}
+
+    {% block stylesheets %}
+        <style scoped="scoped">
+            .disabling_block {
+                background-color: white;
+                display: inline-block;
+                height: 100%;
+                left: 0;
+                opacity: 0.7;
+                position: absolute;
+                top: 0;
+                width: 100%;
+            }
+
+            .media.msg-reply {
+                position: relative;
+            }
+
+            .margin50 {
+                margin-left: 50px;
+            }
+        </style>
 {% endblock %}

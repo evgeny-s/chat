@@ -13,16 +13,27 @@ use Cabinet\ChatBundle\Entity\User;
  */
 class MessageRepository extends EntityRepository
 {
-    public function getBySenderAndRecipient(User $sender, User $recipient) {
+    public function getBySenderAndRecipient(User $sender, User $recipient, $last_id = null) {
         return $this->getEntityManager()
             ->createQuery(
                 "SELECT m FROM CabinetChatBundle:Message m
                   JOIN m.Sender s
-                  JOIN m.Recipient r
-                  WHERE s.id = :id_sender
-                    AND s.id = :id_recipient
-                      ORDER BY m.createdAt ASC
-                "
+                    JOIN m.Recipient r
+                      WHERE ((s.id = :id_sender
+                        AND r.id = :id_recipient) OR
+                            (r.id = :id_sender
+                            AND s.id = :id_recipient))
+                        "
+                            . ($last_id ? "AND m.id > $last_id" : "") .
+                " ORDER BY m.createdAt ASC"
             )->setParameters(array('id_sender' => $sender->getId(), 'id_recipient' => $recipient->getId()))->getResult();
+    }
+
+    public function getListSenders($user) {
+        return $this->getEntityManager()
+            ->createQuery(
+                "SELECT u FROM CabinetChatBundle:User u
+                  WHERE u.id <> :user_id"
+            )->setParameter("user_id", $user->getId())->getResult();
     }
 }

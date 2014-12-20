@@ -1,0 +1,20 @@
+{% for m in messages %}
+    <div class="panel panel-default message_block {% if (app.user.id == m.Sender.id) %} margin50 {% endif %}" m_id="{{ m.id }}" >
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <span class="time text-muted pull-right">{{ m.createdAt|date("H:i:s d-m-Y") }}</span>
+                <a data-toggle="collapse" href="#collapseOne">
+                    <img src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" class="img img-online img-circle mr5" alt="" >
+                    <small>{% if (app.user.id == m.Sender.id) %} YOU {% else %} {{ m.Sender.username }} {% endif %}</small>
+                </a>
+            </h4>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse in">
+            <div class="panel-body">
+                {{ m.text|raw }}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div>Empty list</div>
+{% endfor %}
