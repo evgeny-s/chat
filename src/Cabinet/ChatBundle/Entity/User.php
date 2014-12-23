@@ -28,7 +28,7 @@ class User extends BaseUser
     /**
      * @var string $image
      * @Assert\File( maxSize = "5000k", mimeTypesMessage = "Please upload a valid Image")
-     * @ORM\Column(name="image", type="string", length=255)
+     * @ORM\Column(name="image", type="string", length=255, nullable=true)
      */
     private $image;
 

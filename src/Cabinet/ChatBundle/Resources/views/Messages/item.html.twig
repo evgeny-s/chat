@@ -11,7 +11,7 @@
 
         <div class="media msg-reply">
             <a class="pull-left" href="#">
-                <img class="img-circle img-online" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
+                <img class="img-circle img-online" src="{{ user_pic_path(app.user) }}" alt="">
             </a>
             <form action="" method="post" id="message_form">
                 <div class="media-body">
@@ -91,6 +91,13 @@
                         .success(function(data) {
                             if (Boolean(data['status'])) {
                                 $(data['html']).appendTo($(".message_collection"));
+
+                                $.titleAlert("***New message***", {
+                                    requireBlur:true,
+                                    stopOnFocus:true,
+                                    duration:10000,
+                                    interval:500
+                                });
                             }
 
                             setTimeout(update_messages, 1000);
