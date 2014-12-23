@@ -1,7 +1,7 @@
 <div class="leftpanel">
     <div class="media profile-left">
         <a class="pull-left profile-thumb" href="">
-            <img class="img-circle" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
+            <img class="img-circle" src="{{ user_pic_path(app.user) }}" alt="">
         </a>
         <div class="media-body">
             <h4 class="media-heading">{{ app.user }}</h4>
@@ -9,6 +9,6 @@
     </div>
     <h5 class="leftpanel-title">Navigation</h5>
     <ul class="nav nav-pills nav-stacked">
-        <li class="_cabinet_messages"><a href="{{ path('_cabinet_messages') }}"><span class="pull-right badge">{{ get_unread_messages(app.user) }}</span><i class="fa fa-envelope-o"></i> <span>User messages</span></a></li>
+        <li class="_cabinet_chat"><a href="{{ path('_cabinet_chat') }}"><span class="pull-right badge">{{ get_unread_messages(app.user) }}</span><i class="fa fa-envelope-o"></i> <span>User messages</span></a></li>
     </ul>
 </div>

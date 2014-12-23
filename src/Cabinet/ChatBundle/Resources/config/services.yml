@@ -10,6 +10,7 @@ services:
     cabinet.twig.cabinet_extension:
         class: Cabinet\ChatBundle\Twig\CabinetExtension
         arguments:
-              doctrine: "@doctrine"
+              em: "@doctrine"
+              service_container: "@service_container"
         tags:
             - { name: twig.extension }

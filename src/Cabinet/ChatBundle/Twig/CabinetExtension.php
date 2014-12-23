@@ -2,15 +2,16 @@
 
 namespace Cabinet\ChatBundle\Twig;
 
-use Doctrine\ORM\EntityManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class CabinetExtension extends \Twig_Extension
 {
     protected $doctrine;
 
-    public function __construct($em)
+    public function __construct($em, $container)
     {
         $this->em = $em;
+        $this->container = $container;
     }
 
     /**
@@ -18,7 +19,8 @@ class CabinetExtension extends \Twig_Extension
      */
     public function getFunctions() {
         return array(
-            'get_unread_messages' => new \Twig_Function_Method($this, 'getUnreadMessages')
+            'get_unread_messages' => new \Twig_Function_Method($this, 'getUnreadMessages'),
+            'user_pic_path' => new \Twig_Function_Method($this, 'getUserPicPath')
         );
     }
 
@@ -34,5 +36,14 @@ class CabinetExtension extends \Twig_Extension
     public function getName()
     {
         return 'cabinet_extension';
+    }
+
+    public function getUserPicPath($user)
+    {
+        if ($user->getImage()) {
+            return $user->getRelativePath();
+        } else {
+            return $this->container->get('templating.helper.assets')->getUrl("assets/cabinet/images/photos/anonym.png");
+        }
     }
 }

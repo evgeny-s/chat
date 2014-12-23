@@ -1,11 +1,12 @@
 {% for m in messages %}
-    <div class="panel panel-default message_block {% if (app.user.id == m.Sender.id) %} margin50 {% endif %} {% if (not (m.isRead)) and (not(app.user.id == m.Sender.id)) %}not_read{% endif %}" m_id="{{ m.id }}" >
+    {% set if_you = (app.user.id == m.Sender.id) %}
+    <div class="panel panel-default message_block {% if ( not (if_you)) %} margin50 {% endif %} {% if (not (m.isRead)) and (not(app.user.id == m.Sender.id)) %}not_read{% endif %}" m_id="{{ m.id }}" >
         <div class="panel-heading">
             <h4 class="panel-title">
                 <span class="time text-muted pull-right">{{ m.createdAt|date("H:i:s d-m-Y") }}</span>
                 <a data-toggle="collapse" href="#collapseOne">
-                    <img src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" class="img img-online img-circle mr5" alt="" >
-                    <small>{% if (app.user.id == m.Sender.id) %} YOU {% else %} {{ m.Sender.username }} {% endif %}</small>
+                    <img src="{{ user_pic_path(m.Sender) }}" class="img img-online img-circle mr5" alt="" >
+                    <small>{% if (if_you) %} YOU {% else %} {{ m.Sender.username }} {% endif %}</small>
                 </a>
             </h4>
         </div>

@@ -6,8 +6,8 @@
                 {% for u in users %}
                     {% set u_messages = get_unread_messages(app.user, u) %}
                     <li class="media {% if(not (u_messages)) %}unread {% endif %}">
-                        <a class="pull-left" href="{{ path('_cabinet_messages_item', {id: u.id}) }}">
-                            <img class="media-object img-circle img-online" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
+                        <a class="pull-left" href="{{ path('_cabinet_chat_item', {id: u.id}) }}">
+                            <img class="media-object img-circle img-online" src="{{ user_pic_path(u) }}" alt="">
                         </a>
                         <div class="media-body">
                             <div class="pull-right media-option">

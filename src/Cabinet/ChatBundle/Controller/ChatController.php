@@ -16,11 +16,11 @@ use Symfony\Component\HttpFoundation\Response;
  * @Route("/cabinet")
  */
 
-class MessagesController extends Controller
+class ChatController extends Controller
 {
 
     /**
-     * @Route("/messages", name="_cabinet_messages")
+     * @Route("/messages", name="_cabinet_chat")
      * @Template("CabinetChatBundle:Messages:messages.html.twig")
      */
     public function messagesAction()
@@ -35,7 +35,7 @@ class MessagesController extends Controller
     }
 
     /**
-     * @Route("/messages/item/{id}", name="_cabinet_messages_item")
+     * @Route("/messages/item/{id}", name="_cabinet_chat_item")
      * @Template("CabinetChatBundle:Messages:item.html.twig")
      */
     public function itemAction($id, Request $request)
@@ -81,7 +81,7 @@ class MessagesController extends Controller
     }
 
     /**
-     * @Route("/messages/item/get_last/{id}", name="_cabinet_messages_get_last")
+     * @Route("/messages/item/get_last/{id}", name="_cabinet_chat_get_last")
      */
     public function getLastAction($id, Request $request)
     {
@@ -109,7 +109,7 @@ class MessagesController extends Controller
     }
 
     /**
-     * @Route("/messages/item/make_read/{id}", name="_cabinet_messages_make_read")
+     * @Route("/messages/item/make_read/{id}", name="_cabinet_chat_make_read")
      */
     public function makeReadAction($id, Request $request)
     {
