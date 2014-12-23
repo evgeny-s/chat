@@ -5,3 +5,11 @@ services:
 #    cabinet_chat.example:
 #        class: %cabinet_chat.example.class%
 #        arguments: [@service_id, "plain_value", %parameter%]
+
+services:
+    cabinet.twig.cabinet_extension:
+        class: Cabinet\ChatBundle\Twig\CabinetExtension
+        arguments:
+              doctrine: "@doctrine"
+        tags:
+            - { name: twig.extension }

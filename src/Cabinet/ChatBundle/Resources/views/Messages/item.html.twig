@@ -52,10 +52,29 @@
 
                 $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
 
-
+                setTimeout(make_message_read, 2000);
             });
 
-            update_messages = function() {
+            $(window).focus(function() {
+                setTimeout(make_message_read, 2000);
+            });
+
+            var make_message_read = function() {
+                $.ajax({
+                    data: { make_read: 1 },
+                    url: "{{ path('_cabinet_messages_make_read', {'id' : id}) }}",
+                    type: 'post'
+                })
+                        .success(function(data) {
+                            if (Boolean(data['status'])) {
+                                $(".not_read").removeClass("not_read");
+
+                                $(".pull-right.badge").text(data['count']);
+                            }
+                        });
+            };
+
+            var update_messages = function() {
                 var last_id = $(".message_collection .message_block").last().attr('m_id');
 
                 if (! last_id) {
@@ -100,5 +119,9 @@
             .margin50 {
                 margin-left: 50px;
             }
+
+            .not_read {
+                border: 1px solid black;
+            }
         </style>
-{% endblock %}
+    {% endblock %}

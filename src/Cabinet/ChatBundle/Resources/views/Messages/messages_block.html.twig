@@ -1,5 +1,5 @@
 {% for m in messages %}
-    <div class="panel panel-default message_block {% if (app.user.id == m.Sender.id) %} margin50 {% endif %}" m_id="{{ m.id }}" >
+    <div class="panel panel-default message_block {% if (app.user.id == m.Sender.id) %} margin50 {% endif %} {% if (not (m.isRead)) and (not(app.user.id == m.Sender.id)) %}not_read{% endif %}" m_id="{{ m.id }}" >
         <div class="panel-heading">
             <h4 class="panel-title">
                 <span class="time text-muted pull-right">{{ m.createdAt|date("H:i:s d-m-Y") }}</span>

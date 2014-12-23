@@ -4,7 +4,8 @@
         <div class="col-sm-9 col-md-9 col-lg-10">
             <ul class="media-list msg-list">
                 {% for u in users %}
-                    <li class="media unread">
+                    {% set u_messages = get_unread_messages(app.user, u) %}
+                    <li class="media {% if(not (u_messages)) %}unread {% endif %}">
                         <a class="pull-left" href="{{ path('_cabinet_messages_item', {id: u.id}) }}">
                             <img class="media-object img-circle img-online" src="{{ asset('assets/cabinet/images/photos/anonym.png') }}" alt="">
                         </a>
@@ -13,6 +14,7 @@
                                 <small>{# u.createdAt|date("H:i:s d-m-Y") #}</small>
                             </div>
                             <h4 class="sender">{{ u.username }}</h4>
+                            <span class="pull-right badge">{{ u_messages }}</span>
                         </div>
                     </li>
                 {% endfor %}

@@ -3,5 +3,16 @@
 {% trans_default_domain 'FOSUserBundle' %}
 
 {% block fos_user_content %}
-    <p>{{ 'registration.check_email'|trans({'%email%': user.email}) }}</p>
+    <div class="panel panel-signup">
+        <div class="panel-body">
+            <div class="logo text-center">
+                <img src="{{ asset('assets/cabinet/images/logo-primary.png') }}" alt="Chain Logo" >
+            </div>
+            <br />
+            <p>Our admins will activate you as soon as possible and after this you can login</p>
+        </div><!-- panel-body -->
+        <div class="panel-footer">
+            <a href="{{ path('_cabinet_index') }}" class="btn btn-primary btn-block">Enter cabinet</a>
+        </div><!-- panel-footer -->
+    </div><!-- panel -->
 {% endblock fos_user_content %}

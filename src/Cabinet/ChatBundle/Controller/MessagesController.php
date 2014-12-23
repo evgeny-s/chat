@@ -55,6 +55,7 @@ class MessagesController extends Controller
                 $message->setIsRead(0);
                 $message->setRecipient($user);
                 $message->setSender($current_user);
+                $message->setIsRead(false);
 
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($message);
@@ -103,6 +104,29 @@ class MessagesController extends Controller
         } else {
             $result = array("status" => false);
         }
+
+        return new JsonResponse($result);
+    }
+
+    /**
+     * @Route("/messages/item/make_read/{id}", name="_cabinet_messages_make_read")
+     */
+    public function makeReadAction($id, Request $request)
+    {
+        $user_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:User');
+        $user = $user_repo->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException('User does not exist!');
+        }
+        $current_user = $this->getUser();
+
+        $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
+        $messages_repo->makeReadBySenderAndRecipient($user, $current_user);
+
+        $result = array(
+            "status" => true,
+            "count" => $messages_repo->getUnreadMessages($current_user, null)
+        );
 
         return new JsonResponse($result);
     }

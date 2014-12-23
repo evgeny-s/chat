@@ -36,4 +36,28 @@ class MessageRepository extends EntityRepository
                   WHERE u.id <> :user_id"
             )->setParameter("user_id", $user->getId())->getResult();
     }
+
+    public function makeReadBySenderAndRecipient(User $sender, User $recipient) {
+        return $this->getEntityManager()
+            ->createQuery("
+                UPDATE CabinetChatBundle:Message m SET m.isRead = 1 WHERE m.Sender = :id_sender AND m.Recipient = :id_recipient AND m.isRead = 0
+            ")->setParameters(array('id_sender' => $sender->getId(), 'id_recipient' => $recipient->getId()))
+            ->execute();
+    }
+
+    public function getUnreadMessages(User $user, $sender) {
+        $result = $this->getEntityManager()
+            ->createQuery("
+                SELECT COUNT(m) as m_count FROM CabinetChatBundle:Message m
+                  JOIN m.Recipient r
+                    JOIN m.Sender s
+                      WHERE r.id = :id_user "
+                         . ($sender ? "AND s.id = {$sender->getId()}" : "") .
+                            " AND m.isRead = 0
+            ")
+            ->setParameter('id_user', $user->getId())
+            ->getArrayResult();
+
+        return $result[0]['m_count'];
+    }
 }
