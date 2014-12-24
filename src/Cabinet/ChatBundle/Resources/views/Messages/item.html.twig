@@ -29,14 +29,20 @@
     {% block javascripts %}
         <script>
             $(function() {
+                var globalChatEditor = CKEDITOR.instances.cabinet_chatbundle_message_text;
+                /* Ctrl + Enter now will work as Shift + Enter */
+                globalChatEditor.on("instanceReady", function() {
+                    this.setKeystroke( [
+                        [ CKEDITOR.CTRL + 13, 'shiftEnter' ]
+                    ] );
+                });
+                
                 $("#send_message_button").click(function(e) {
                     var disabling_block = $(".disabling_block");
                     disabling_block.removeClass("hidden");
 
                     e.preventDefault();
-                    for ( var instance in CKEDITOR.instances ) {
-                        CKEDITOR.instances[instance].updateElement();
-                    }
+                    globalChatEditor.updateElement();
                     $.ajax({
                         data: $('#message_form').serialize(),
                         url: "{{ path('_cabinet_chat_item', {'id' : id}) }}",
@@ -44,7 +50,7 @@
                     })
                             .success(function() {
                                 disabling_block.addClass("hidden");
-                                CKEDITOR.instances[instance].setData('');
+                                globalChatEditor.editable().setHtml('');
                             });
                 });
 
@@ -53,6 +59,15 @@
                 $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
 
                 setTimeout(make_message_read, 2000);
+
+
+                globalChatEditor.on("contentDom", function() {
+                    globalChatEditor.document.on("keyup", function(event) {
+                        if( event.data.getKeystroke() == 13 ) {
+                            $("#send_message_button").click();
+                        }
+                    });
+                });
             });
 
             $(window).focus(function() {
@@ -91,6 +106,7 @@
                         .success(function(data) {
                             if (Boolean(data['status'])) {
                                 $(data['html']).appendTo($(".message_collection"));
+                                $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
 
                                 $.titleAlert("***New message***", {
                                     requireBlur:true,
