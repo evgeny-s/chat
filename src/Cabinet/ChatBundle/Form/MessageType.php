@@ -18,7 +18,9 @@ class MessageType extends AbstractType
             ->add('text', 'ckeditor', array(
                 'label'     => 'Enter message',
                 'config'    => array(
-                    'height'    => '150'
+                    'height'    => '150',
+                    'toolbarCanCollapse' => true,
+                    'toolbarStartupExpanded' => false
                 )
             ))
         ;

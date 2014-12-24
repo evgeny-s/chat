@@ -36,7 +36,7 @@
                         [ CKEDITOR.CTRL + 13, 'shiftEnter' ]
                     ] );
                 });
-                
+
                 $("#send_message_button").click(function(e) {
                     var disabling_block = $(".disabling_block");
                     disabling_block.removeClass("hidden");
@@ -51,6 +51,7 @@
                             .success(function() {
                                 disabling_block.addClass("hidden");
                                 globalChatEditor.editable().setHtml('');
+                                setTimeout(make_message_read, 2000);
                             });
                 });
 
@@ -106,19 +107,31 @@
                         .success(function(data) {
                             if (Boolean(data['status'])) {
                                 $(data['html']).appendTo($(".message_collection"));
-                                $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
-
-                                $.titleAlert("***New message***", {
-                                    requireBlur:true,
-                                    stopOnFocus:true,
-                                    duration:10000,
-                                    interval:500
-                                });
                             }
+
+                            if($(".not_read").length) {
+                                flash_taskbar();
+                            }
+
+                            $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
 
                             setTimeout(update_messages, 1000);
                         });
-            }
+            };
+
+            var flash_taskbar = function()
+            {
+                /*(new PNotify({
+                    title: 'New Notification',
+                    text: 'You have a new message!',
+                    desktop: {
+                        desktop: true
+                    }
+                })).get().click(function(e) {
+                            if ($('.ui-pnotify-closer, .ui-pnotify-sticker, .ui-pnotify-closer *, .ui-pnotify-sticker *').is(e.target)) return;
+                        });*/
+            };
+            //PNotify.desktop.permission();
         </script>
     {% endblock %}
 
