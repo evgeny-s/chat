@@ -57,7 +57,7 @@
 
                 setTimeout(update_messages, 1000);
 
-                $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
+                scroll_to_bottom();
 
                 setTimeout(make_message_read, 2000);
 
@@ -107,16 +107,19 @@
                         .success(function(data) {
                             if (Boolean(data['status'])) {
                                 $(data['html']).appendTo($(".message_collection"));
+                                scroll_to_bottom();
                             }
 
                             if($(".not_read").length) {
                                 flash_taskbar();
                             }
 
-                            $('html, body').animate({scrollTop: $("#message_form").offset().top}, 2000);
-
                             setTimeout(update_messages, 1000);
                         });
+            };
+
+            var scroll_to_bottom = function() {
+                $('html, body').animate({scrollTop: $("#message_form").offset().top}, 1000);
             };
 
             var flash_taskbar = function()
