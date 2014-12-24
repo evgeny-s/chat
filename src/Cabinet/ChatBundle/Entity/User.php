@@ -4,6 +4,7 @@ namespace Cabinet\ChatBundle\Entity;
 
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -26,8 +27,11 @@ class User extends BaseUser
     }
 
     /**
-     * @var string $image
-     * @Assert\File( maxSize = "5000k", mimeTypesMessage = "Please upload a valid Image")
+     * @var \Symfony\Component\HttpFoundation\File\UploadedFile
+     * @Assert\File(
+     *     maxSize="5M",
+     *     mimeTypes={"image/png", "image/jpeg", "image/pjpeg"}
+     * )
      * @ORM\Column(name="image", type="string", length=255, nullable=true)
      */
     private $image;
@@ -62,16 +66,26 @@ class User extends BaseUser
      */
     public function getImage()
     {
-        return $this->image;
+        if (null != $this->image) {
+            return new File($this->getFullImagePath());
+        } else {
+            return null;
+        }
+
     }
 
     public function getFullImagePath() {
-        return null === $this->getImage() ? null : $this->getUploadRootDir(). $this->getImage();
+        return null === $this->image ? null : $this->getUploadRootDir(). $this->image;
     }
 
     public function getRelativePath()
     {
-        return $this->getInsideWebDirPath() . $this->getImage();
+        if (null != $this->image) {
+            return $this->getInsideWebDirPath() . $this->image;
+        } else {
+            return null;
+        }
+
     }
 
     protected function getUploadRootDir() {
@@ -89,9 +103,10 @@ class User extends BaseUser
 
     public function uploadImage() {
         // the file property can be empty if the field is not required
-        if (null === $this->getImage()) {
+        if (null === $this->image) {
             return;
         }
+
         if (!$this->id) {
             $this->image->move($this->getTmpUploadRootDir(), $this->image->getClientOriginalName());
         } else {
@@ -108,8 +123,8 @@ class User extends BaseUser
         if(!is_dir($this->getUploadRootDir())){
             mkdir($this->getUploadRootDir());
         }
-        copy($this->getTmpUploadRootDir().$this->getImage(), $this->getFullImagePath());
-        unlink($this->getTmpUploadRootDir().$this->getImage());
+        copy($this->getTmpUploadRootDir().$this->image, $this->getFullImagePath());
+        unlink($this->getTmpUploadRootDir().$this->image);
     }
 
     public function removeImage()

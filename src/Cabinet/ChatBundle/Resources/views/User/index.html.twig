@@ -1,8 +1,11 @@
 {% extends "::Cabinet/layout.html.twig" %}
 {% block content %}
+
+    {% form_theme form 'CabinetChatBundle:Form:fields.html.twig' %}
+
     <h2>User profile</h2>
 
-    <form class="form-horizontal form-bordered" action="{{ path('_cabinet_profile') }}" method="post" {{ form_enctype(form) }}>
+    <form class="form-horizontal form-bordered" action="{{ path('_cabinet_profile') }}" method="post" {{ form_enctype(form) }} novalidate="novalidate">
         <div class="form-group">
             <label class="col-sm-4 control-label">Enter you name</label>
             <div class="col-sm-8">
@@ -13,7 +16,7 @@
         <div class="form-group">
             <label class="col-sm-4 control-label">Upload picture</label>
             <div class="col-sm-8">
-                {{ form_widget(form.image, {'attr': {'class' : 'form-control' }}) }}
+                {{ form_widget(form.image, {'attr': {'class' : 'form-control'}}) }}
             </div>
         </div><!-- form-group -->
 
@@ -22,3 +25,13 @@
         </div>
     </form>
 {% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .form-group .pic_wrapper img {
+            padding-top: 15px;
+            width: 100px;
+        }
+    </style>
+{% endblock %}
+

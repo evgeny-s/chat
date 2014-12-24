@@ -1,0 +1,14 @@
+{% extends 'form_div_layout.html.twig' %}
+
+{% block file_widget %}
+    {% spaceless %}
+
+        {{ block('form_widget') }}
+        {% if image_url is not null %}
+            <div class="pic_wrapper">
+                <img src="{{ image_url }}"/>
+            </div>
+        {% endif %}
+
+    {% endspaceless %}
+{% endblock %}

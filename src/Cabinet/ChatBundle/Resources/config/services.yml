@@ -14,3 +14,8 @@ services:
               service_container: "@service_container"
         tags:
             - { name: twig.extension }
+
+    cabinet_chat_buntle.profile_type_extension:
+            class: Cabinet\ChatBundle\Form\Extension\ProfileTypeExtension
+            tags:
+                - { name: form.type_extension, alias: file }

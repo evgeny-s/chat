@@ -16,9 +16,7 @@ class ProfileType extends AbstractType
     {
         $builder
             ->add('username', 'text')
-            ->add('image', 'file', array(
-                'data_class' => null)
-            )
+            ->add('image', 'file', array('image_path' => 'getRelativePath'));
         ;
     }
 
