@@ -75,10 +75,14 @@
                         }
                     });
                 });
-            });
 
-            $(window).focus(function() {
-                setTimeout(make_message_read, 1500);
+                $(window).focus(function() {
+                    setTimeout(make_message_read, 1500);
+                });
+
+                globalChatEditor.on('focus', function(){
+                    setTimeout(make_message_read, 1500);
+                });
             });
 
             var make_message_read = function() {
