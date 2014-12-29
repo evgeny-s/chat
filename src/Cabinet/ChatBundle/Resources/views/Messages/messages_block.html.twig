@@ -4,18 +4,29 @@
         <div class="panel-heading">
             <h4 class="panel-title">
                 <span class="time text-muted pull-right">{{ m.createdAt|date("H:i:s d-m-Y") }}</span>
-                <a data-toggle="collapse" href="#collapseOne">
+                <a data-toggle="collapse" href="#">
                     <img src="{{ user_pic_path(m.Sender) }}" class="img img-online img-circle mr5" alt="" >
                     <small>{% if (if_you) %} YOU {% else %} {{ m.Sender.username }} {% endif %}</small>
                 </a>
             </h4>
         </div>
-        <div id="collapseOne" class="panel-collapse collapse in">
+        <div class="panel-collapse collapse in">
             <div class="panel-body">
                 {{ m.text|raw }}
             </div>
+            {% if if_you %}
+                {% if m.isRead %}
+                    <div class="seen_block">
+                        <i class="glyphicon glyphicon-eye-open"></i>
+                    </div>
+                {% else %}
+                    <div class="seen_block">
+                        <i class=""></i>
+                    </div>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 {% else %}
-    <div>Empty list</div>
+    <div class="no_messages">There are no messages today</div>
 {% endfor %}

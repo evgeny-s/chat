@@ -55,7 +55,6 @@ class ChatController extends Controller
                 $message->setIsRead(0);
                 $message->setRecipient($user);
                 $message->setSender($current_user);
-                $message->setIsRead(false);
 
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($message);
@@ -71,7 +70,8 @@ class ChatController extends Controller
 
 
         $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
-        $oMessages = $messages_repo->getBySenderAndRecipient($user, $current_user);
+        $get_all = $request->get('get_all');
+        $oMessages = $messages_repo->getBySenderAndRecipient($user, $current_user, null, $get_all);
 
         return array(
             'messages' => $oMessages,
@@ -96,10 +96,15 @@ class ChatController extends Controller
         $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
         $oMessages = $messages_repo->getBySenderAndRecipient($user, $current_user, $last_id);
 
-        if (count($oMessages)) {
+        $not_read_messages_ids = $request->get('not_read_messages');
+
+        $read_ids = $messages_repo->getReadMessagesByList($current_user, $not_read_messages_ids);
+
+        if (count($oMessages) || count($read_ids)) {
             $result = array(
                 "status" => true,
-                "html" => $this->renderView("CabinetChatBundle:Messages:messages_block.html.twig", array("messages" => $oMessages))
+                "html" => $this->renderView("CabinetChatBundle:Messages:messages_block.html.twig", array("messages" => $oMessages)),
+                "read_ids" => $read_ids
             );
         } else {
             $result = array("status" => false);

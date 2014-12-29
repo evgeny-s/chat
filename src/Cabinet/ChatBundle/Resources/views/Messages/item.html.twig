@@ -5,6 +5,10 @@
 
         <h4>Messages list of this sender</h4>
 
+        <div>
+            <a href="{{ path("_cabinet_chat_item", {"id": id, "get_all": "1"}) }}">Show previous messages</a>
+        </div>
+
         <div class="panel-group panel-group-msg message_collection" id="accordion">
             {% include "CabinetChatBundle:Messages:messages_block.html.twig" with {messages: messages} %}
         </div>
@@ -28,6 +32,8 @@
 
     {% block javascripts %}
         <script>
+            var notification_is_read = true;
+
             $(function() {
                 var globalChatEditor = CKEDITOR.instances.cabinet_chatbundle_message_text;
                 /* Ctrl + Enter now will work as Shift + Enter */
@@ -72,7 +78,7 @@
             });
 
             $(window).focus(function() {
-                setTimeout(make_message_read, 2000);
+                setTimeout(make_message_read, 1500);
             });
 
             var make_message_read = function() {
@@ -86,6 +92,8 @@
                                 $(".not_read").removeClass("not_read");
 
                                 $(".pull-right.badge").text(data['count']);
+
+                                notification_is_read = true;
                             }
                         });
             };
@@ -97,21 +105,39 @@
                     last_id = 0;
                 }
 
+                var not_read_messages = [];
+                $(".seen_block i:not(.glyphicon)").each(function () {
+                    not_read_messages.push($(this).parents(".message_block").attr('m_id'));
+                });
+
                 $.ajax({
                     data: {
-                        last_id: last_id
+                        last_id: last_id,
+                        not_read_messages: not_read_messages
                     },
                     url: "{{ path('_cabinet_chat_get_last', {'id' : id}) }}",
                     type: "post"
                 })
                         .success(function(data) {
+                            /* updating messages list */
                             if (Boolean(data['status'])) {
                                 $(data['html']).appendTo($(".message_collection"));
                                 scroll_to_bottom();
+
+                                /* updating not read status */
+                                if (data["read_ids"].length) {
+                                    for (var id_key in data["read_ids"]) {
+                                        $(".message_block[m_id=" + data["read_ids"][id_key] + "] .seen_block i").addClass("glyphicon glyphicon-eye-open");
+                                    }
+                                }
+
+                                $(".no_messages").remove();
                             }
 
-                            if($(".not_read").length) {
-                                flash_taskbar();
+                            /* make once notification */
+                            if($(".not_read").length && notification_is_read) {
+                                flash_taskbar($(".not_read").first().find('.panel-body').text());
+                                notification_is_read = false;
                             }
 
                             setTimeout(update_messages, 1000);
@@ -122,19 +148,19 @@
                 $('html, body').animate({scrollTop: $("#message_form").offset().top}, 1000);
             };
 
-            var flash_taskbar = function()
+            var flash_taskbar = function(text)
             {
-                /*(new PNotify({
-                    title: 'New Notification',
-                    text: 'You have a new message!',
+                (new PNotify({
+                    title: '{{ app.user.username }}, you have new message!',
+                    text: text,
                     desktop: {
                         desktop: true
                     }
                 })).get().click(function(e) {
                             if ($('.ui-pnotify-closer, .ui-pnotify-sticker, .ui-pnotify-closer *, .ui-pnotify-sticker *').is(e.target)) return;
-                        });*/
+                        });
             };
-            //PNotify.desktop.permission();
+            PNotify.desktop.permission();
         </script>
     {% endblock %}
 
@@ -161,6 +187,16 @@
 
             .not_read {
                 border: 1px solid red;
+            }
+
+            .seen_block {
+                bottom: 15px;
+                position: absolute;
+                right: 15px;
+            }
+
+            .panel-collapse.collapse.in {
+                position: relative;
             }
         </style>
     {% endblock %}

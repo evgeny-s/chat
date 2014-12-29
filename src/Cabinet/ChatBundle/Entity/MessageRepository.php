@@ -13,7 +13,11 @@ use Cabinet\ChatBundle\Entity\User;
  */
 class MessageRepository extends EntityRepository
 {
-    public function getBySenderAndRecipient(User $sender, User $recipient, $last_id = null) {
+    public function getBySenderAndRecipient(User $sender, User $recipient, $last_id = null, $get_all = null) {
+        if (! $get_all) {
+            $today = date('Y') . '-' . date('m') . '-' . date('d') .' 00:00:00';
+        }
+
         return $this->getEntityManager()
             ->createQuery(
                 "SELECT m FROM CabinetChatBundle:Message m
@@ -24,7 +28,8 @@ class MessageRepository extends EntityRepository
                             (r.id = :id_sender
                             AND s.id = :id_recipient))
                         "
-                            . ($last_id ? "AND m.id > $last_id" : "") .
+                            . ($last_id ? "AND m.id > $last_id" : "")
+                            . ($get_all ? "" : "AND m.createdAt > '$today'") .
                 " ORDER BY m.createdAt ASC"
             )->setParameters(array('id_sender' => $sender->getId(), 'id_recipient' => $recipient->getId()))->getResult();
     }
@@ -59,5 +64,19 @@ class MessageRepository extends EntityRepository
             ->getArrayResult();
 
         return $result[0]['m_count'];
+    }
+
+    public function getReadMessagesByList(User $user, $aList) {
+        $result = $this->getEntityManager()
+            ->createQuery("SELECT m.id FROM CabinetChatBundle:Message m
+                            JOIN m.Sender s
+                              WHERE s.id = :id_sender AND m.isRead = 1 AND m.id IN (:list)
+                        ")
+            ->setParameters(array('list' => $aList, 'id_sender' => $user->getId()))
+            ->getArrayResult();
+
+        return array_map(function($el) {
+            return $el['id'];
+        }, $result);
     }
 }
