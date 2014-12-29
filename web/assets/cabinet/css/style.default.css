@@ -878,7 +878,7 @@ a:focus {
 
 .msg-list li.media,
 .msg-list li.media .media-body {
-    overflow: visible;
+    overflow: auto;
 }
 
 .msg-list .dropdown-menu li {
