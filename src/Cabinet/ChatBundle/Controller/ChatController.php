@@ -49,25 +49,11 @@ class ChatController extends Controller
 
         $message = new Message();
         $form = $this->createForm(new MessageType(), $message);
-        if ($request->isXmlHttpRequest()) {
-            $form->handleRequest($request);
-            if ($form->isValid()) {
-                $message->setIsRead(0);
-                $message->setRecipient($user);
-                $message->setSender($current_user);
 
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($message);
-                $em->flush();
-
-                $response = new JsonResponse();
-                $response->setData(array(
-                    'status' => 1
-                ));
-                return $response;
-            }
+        $response = $this->processAjax($form, $message, $user, $current_user, $request);
+        if ($response) {
+            return $response;
         }
-
 
         $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
         $get_all = $request->get('get_all');
@@ -80,63 +66,59 @@ class ChatController extends Controller
         );
     }
 
-    /**
-     * @Route("/messages/item/get_last/{id}", name="_cabinet_chat_get_last")
-     */
-    public function getLastAction($id, Request $request)
+    private function processAjax($form, $message, $user, $current_user, $request)
     {
-        $user_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:User');
-        $user = $user_repo->find($id);
-        if (!$user) {
-            throw $this->createNotFoundException('User does not exist!');
-        }
-        $current_user = $this->getUser();
-        $last_id = $request->get('last_id');
+        if ($request->isXmlHttpRequest()) {
+            $response = array();
 
-        $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
-        $oMessages = $messages_repo->getBySenderAndRecipient($user, $current_user, $last_id);
+            $send_message = $request->get('send_message');
+            $make_message_read = $request->get('make_message_read');
+            $last_id = $request->get('last_id');
+            $not_read_messages = $request->get('not_read_messages');
+            $send_message_data = $request->get('send_message_data');
+            $status = 1;
+            $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
 
-        $not_read_messages_ids = $request->get('not_read_messages');
+            if ($send_message) {
+                if ($send_message_data) {
+                    $message->setIsRead(0);
+                    $message->setRecipient($user);
+                    $message->setSender($current_user);
+                    $message->setText($send_message_data);
 
-        $read_ids = $messages_repo->getReadMessagesByList($current_user, $not_read_messages_ids);
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($message);
+                    $em->flush();
+                }
+                $response["send_message"] = true;
+            }
 
-        if (count($oMessages) || count($read_ids)) {
-            $result = array(
-                "status" => true,
-                "html" => $this->renderView("CabinetChatBundle:Messages:messages_block.html.twig", array("messages" => $oMessages)),
-                "read_ids" => $read_ids
-            );
+            if ($make_message_read) {
+                $messages_repo->makeReadBySenderAndRecipient($user, $current_user);
+
+                $response["make_message_read_count"] = $messages_repo->getUnreadMessages($current_user, null);
+                $response["make_message_read"] = true;
+            }
+
+
+            $oMessages = $messages_repo->getBySenderAndRecipient($user, $current_user, $last_id);
+
+            $read_ids = $messages_repo->getReadMessagesByList($current_user, $not_read_messages);
+
+            if (count($oMessages)) {
+                $response["messages_html"] = $this->renderView("CabinetChatBundle:Messages:messages_block.html.twig", array("messages" => $oMessages));
+                $response["messages_status"] = true;
+            } else {
+                $response["messages_status"] = false;
+            }
+            $response["not_read_ids"] = $read_ids;
+
+            $response["status"] = $status;
+            return new JsonResponse($response);
         } else {
-            $result = array("status" => false);
+            return null;
         }
-
-        return new JsonResponse($result);
     }
-
-    /**
-     * @Route("/messages/item/make_read/{id}", name="_cabinet_chat_make_read")
-     */
-    public function makeReadAction($id, Request $request)
-    {
-        $user_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:User');
-        $user = $user_repo->find($id);
-        if (!$user) {
-            throw $this->createNotFoundException('User does not exist!');
-        }
-        $current_user = $this->getUser();
-
-        $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
-        $messages_repo->makeReadBySenderAndRecipient($user, $current_user);
-
-        $result = array(
-            "status" => true,
-            "count" => $messages_repo->getUnreadMessages($current_user, null)
-        );
-
-        return new JsonResponse($result);
-    }
-
-
 
     /**
      * @Route("/", name="_cabinet_index")

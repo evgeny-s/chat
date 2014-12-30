@@ -417,7 +417,7 @@ a:focus {
 
 .leftpanel {
     width: 230px;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
 }
@@ -3399,7 +3399,7 @@ body.signin {
     }
     
     .show-left .leftpanel {
-        position: fixed;
+        position: absolute;
         top: 0;
         bottom: 0;
         height: 100%;

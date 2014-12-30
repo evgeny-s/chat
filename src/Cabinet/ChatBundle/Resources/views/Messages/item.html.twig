@@ -24,197 +24,224 @@
                 </div>
             </form>
             <div class="disabling_block hidden">
-
+                <img src="{{ asset('assets/cabinet/images/loaders/loader7.gif') }}" />
             </div>
         </div>
     </div>
-    {% endblock %}
 
-    {% block javascripts %}
-        <script>
-            var notification_is_read = true;
-            var window_focus;
+    <span id="top-link-block" class="hidden">
+        <a href="#top" class="well well-sm" onclick="$('html,body').animate({scrollTop:0},'slow');return false;">
+            <i class="glyphicon glyphicon-chevron-up"></i> Back to Top
+        </a>
+    </span>
+{% endblock %}
 
-            $(function() {
-                var globalChatEditor = CKEDITOR.instances.cabinet_chatbundle_message_text;
-                /* Ctrl + Enter now will work as Shift + Enter */
-                globalChatEditor.on("instanceReady", function() {
-                    this.setKeystroke( [
-                        [ CKEDITOR.CTRL + 13, 'shiftEnter' ]
-                    ] );
-                });
+{% block javascripts %}
+    <script>
+        var Dispatcher = {
+            send_message : 0,
+            send_message_data : [],
+            make_message_read : 0,
+            last_id : 0,
+            not_read_messages : [],
+            notification_is_read : 1,
+            window_focus : 1,
+            disabling_block : $(".disabling_block"),
+            global_chat_editor : {}
+        };
+        PNotify.desktop.permission();
 
-                $(window).focus(function() {
-                    window_focus = true;
-                }).blur(function() {
-                    window_focus = false;
-                });
+        Dispatcher.dispatch = function () {
+            Dispatcher.last_id = $(".message_collection .message_block").last().attr('m_id');
 
-                globalChatEditor.on("focus", function() {
-                    window_focus = true;
-                });
-                globalChatEditor.on("blur", function() {
-                    window_focus = false;
-                });
+            if (! Dispatcher.last_id) {
+                Dispatcher.last_id = 0;
+            }
 
-                $("#send_message_button").click(function(e) {
-                    var disabling_block = $(".disabling_block");
-                    disabling_block.removeClass("hidden");
-
-                    e.preventDefault();
-                    globalChatEditor.updateElement();
-                    $.ajax({
-                        data: $('#message_form').serialize(),
-                        url: "{{ path('_cabinet_chat_item', {'id' : id}) }}",
-                        type: 'post'
-                    })
-                            .success(function() {
-                                disabling_block.addClass("hidden");
-                                globalChatEditor.editable().setHtml('');
-                                setTimeout(make_message_read, 2000);
-                            });
-                });
-
-                setTimeout(update_messages, 1000);
-
-                scroll_to_bottom();
-
-                setTimeout(make_message_read, 2000);
-
-
-                globalChatEditor.on("contentDom", function() {
-                    globalChatEditor.document.on("keyup", function(event) {
-                        if( event.data.getKeystroke() == 13 ) {
-                            $("#send_message_button").click();
-                        }
-                    });
-                });
-
-                $(window).focus(function() {
-                    setTimeout(make_message_read, 1500);
-                });
-
-                globalChatEditor.on('focus', function(){
-                    setTimeout(make_message_read, 1500);
-                });
+            Dispatcher.not_read_messages = [];
+            $(".seen_block i:not(.glyphicon)").each(function () {
+                Dispatcher.not_read_messages.push($(this).parents(".message_block").attr('m_id'));
             });
 
-            var make_message_read = function() {
-                $.ajax({
-                    data: { make_read: 1 },
-                    url: "{{ path('_cabinet_chat_make_read', {'id' : id}) }}",
-                    type: 'post'
-                })
-                        .success(function(data) {
-                            if (Boolean(data['status'])) {
-                                $(".not_read").removeClass("not_read");
+            if (Dispatcher.send_message) {
+                Dispatcher.send_message_data = $('#cabinet_chatbundle_message_text').val();
+            }
+            $.ajax({
+                data: {
+                    send_message : Dispatcher.send_message,
+                    make_message_read : Dispatcher.make_message_read,
+                    last_id: Dispatcher.last_id,
+                    not_read_messages: Dispatcher.not_read_messages,
+                    send_message_data : Dispatcher.send_message_data
+                },
+                url: "{{ path('_cabinet_chat_item', {'id' : id}) }}",
+                type: "post"
+            })
+                    .success(function(data) {
+                        /* updating messages list */
+                        if (Boolean(data['messages_status'])) {
+                            $(data['messages_html']).appendTo($(".message_collection"));
+                            Dispatcher.scroll_to_bottom();
+                            $(".no_messages").remove();
+                            Dispatcher.send_message_data = undefined;
+                        }
 
-                                $(".pull-right.badge").text(data['count']);
-
-                                notification_is_read = true;
+                        /* updating not read status */
+                        if (data["not_read_ids"].length) {
+                            for (var id_key in data["not_read_ids"]) {
+                                $(".message_block[m_id=" + data["not_read_ids"][id_key] + "] .seen_block i").addClass("glyphicon glyphicon-eye-open");
                             }
-                        });
-            };
+                        }
 
-            var update_messages = function() {
-                var last_id = $(".message_collection .message_block").last().attr('m_id');
+                        /* make once notification */
+                        if( $(".not_read").length && Dispatcher.notification_is_read && ! Dispatcher.window_focus) {
+                            Dispatcher.flash_taskbar($(".not_read").first().find('.panel-body').text());
+                            Dispatcher.notification_is_read = 0;
+                        }
 
-                if (! last_id) {
-                    last_id = 0;
+                        if (Boolean(data["make_message_read"])) {
+                            $(".not_read").removeClass("not_read");
+                            $(".pull-right.badge").text(data['make_message_read_count']);
+                            Dispatcher.notification_is_read = 1;
+                            Dispatcher.make_message_read = 0;
+                        }
+
+                        if (Boolean(data["send_message"])) {
+                            Dispatcher.disabling_block.addClass("hidden");
+                            Dispatcher.global_chat_editor.editable().setHtml('');
+                            Dispatcher.make_message_read = 1;
+                            Dispatcher.send_message = 0;
+                        }
+
+                        setTimeout(Dispatcher.dispatch, 1000);
+                    })
+                    .error(function() {
+                        setTimeout(Dispatcher.dispatch, 1000);
+                    });
+        };
+
+        Dispatcher.flash_taskbar = function(text)
+        {
+            (new PNotify({
+                title: '{{ app.user.username }}, you have new message!',
+                text: text,
+                desktop: {
+                    desktop: true
                 }
+            })).get().click(function(e) {
+                        if ($('.ui-pnotify-closer, .ui-pnotify-sticker, .ui-pnotify-closer *, .ui-pnotify-sticker *').is(e.target)) return;
+                    });
+        };
 
-                var not_read_messages = [];
-                $(".seen_block i:not(.glyphicon)").each(function () {
-                    not_read_messages.push($(this).parents(".message_block").attr('m_id'));
-                });
+        Dispatcher.scroll_to_bottom = function() {
+            $('html, body').animate({scrollTop: $("#message_form").offset().top}, 1000);
+        };
 
-                $.ajax({
-                    data: {
-                        last_id: last_id,
-                        not_read_messages: not_read_messages
-                    },
-                    url: "{{ path('_cabinet_chat_get_last', {'id' : id}) }}",
-                    type: "post"
-                })
-                        .success(function(data) {
-                            /* updating messages list */
-                            if (Boolean(data['status'])) {
-                                $(data['html']).appendTo($(".message_collection"));
-                                scroll_to_bottom();
+        $("#send_message_button").on("click", function(e) {
+            e.preventDefault();
+            Dispatcher.disabling_block.removeClass("hidden");
+            Dispatcher.global_chat_editor.updateElement();
+            Dispatcher.send_message = 1;
+        });
 
-                                /* updating not read status */
-                                if (data["read_ids"].length) {
-                                    for (var id_key in data["read_ids"]) {
-                                        $(".message_block[m_id=" + data["read_ids"][id_key] + "] .seen_block i").addClass("glyphicon glyphicon-eye-open");
-                                    }
-                                }
+        if ( ($(window).height() + 100) < $(document).height() ) {
+            $('#top-link-block').removeClass('hidden').affix({
+                // how far to scroll down before link "slides" into view
+                offset: {top:100}
+            });
+        }
 
-                                $(".no_messages").remove();
-                            }
 
-                            /* make once notification */
-                            if( $(".not_read").length && notification_is_read && ! window_focus) {
-                                flash_taskbar($(".not_read").first().find('.panel-body').text());
-                                notification_is_read = false;
-                            }
+        $(function() {
+            Dispatcher.global_chat_editor = CKEDITOR.instances.cabinet_chatbundle_message_text;
 
-                            setTimeout(update_messages, 1000);
-                        });
-            };
+            /* Ctrl + Enter now will work as Shift + Enter */
+            Dispatcher.global_chat_editor.on("instanceReady", function() {
+                this.setKeystroke( [
+                    [ CKEDITOR.CTRL + 13, 'shiftEnter' ]
+                ] );
+            });
 
-            var scroll_to_bottom = function() {
-                $('html, body').animate({scrollTop: $("#message_form").offset().top}, 1000);
-            };
+            $(window).focus(function() {
+                Dispatcher.window_focus = 1;
+                Dispatcher.make_message_read = 1;
+            }).blur(function() {
+                Dispatcher.window_focus = false;
+            });
 
-            var flash_taskbar = function(text)
-            {
-                (new PNotify({
-                    title: '{{ app.user.username }}, you have new message!',
-                    text: text,
-                    desktop: {
-                        desktop: true
+            Dispatcher.global_chat_editor.on("focus", function() {
+                Dispatcher.window_focus = 1;
+                Dispatcher.make_message_read = 1;
+            });
+            Dispatcher.global_chat_editor.on("blur", function() {
+                Dispatcher.window_focus = false;
+            });
+
+            Dispatcher.dispatch();
+            Dispatcher.scroll_to_bottom();
+            Dispatcher.make_message_read = 1;
+
+            Dispatcher.global_chat_editor.on("contentDom", function() {
+                Dispatcher.global_chat_editor.document.on("keyup", function(event) {
+                    if( event.data.getKeystroke() == 13 ) {
+                        $("#send_message_button").click();
                     }
-                })).get().click(function(e) {
-                            if ($('.ui-pnotify-closer, .ui-pnotify-sticker, .ui-pnotify-closer *, .ui-pnotify-sticker *').is(e.target)) return;
-                        });
-            };
-            PNotify.desktop.permission();
-        </script>
-    {% endblock %}
+                });
+            });
+        });
+    </script>
+{% endblock %}
 
-    {% block stylesheets %}
-        <style scoped="scoped">
-            .disabling_block {
-                background-color: white;
-                display: inline-block;
-                height: 100%;
-                left: 0;
-                opacity: 0.7;
-                position: absolute;
-                top: 0;
-                width: 100%;
-            }
+{% block stylesheets %}
+    <style scoped="scoped">
+        .disabling_block {
+            background-color: white;
+            display: inline-block;
+            height: 100%;
+            left: 0;
+            opacity: 0.7;
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
 
-            .media.msg-reply {
-                position: relative;
-            }
+        .media.msg-reply {
+            position: relative;
+        }
 
-            .margin50 {
-                margin-left: 50px;
-            }
+        .margin50 {
+            margin-left: 50px;
+        }
 
-            .not_read {
-                border: 1px solid red;
-            }
+        .not_read {
+            border: 1px solid red;
+        }
 
-            .seen_block {
-                bottom: 15px;
-                position: absolute;
-                right: 15px;
-            }
+        .seen_block {
+            bottom: 15px;
+            position: absolute;
+            right: 15px;
+        }
 
-            .panel-collapse.collapse.in {
-                position: relative;
-            }
-        </style>
-    {% endblock %}
+        .panel-collapse.collapse.in {
+            position: relative;
+        }
+
+        .disabling_block > img {
+            left: 50%;
+            position: absolute;
+            top: 35%;
+        }
+
+        #top-link-block.affix-top {
+            position: absolute; /* allows it to "slide" up into view */
+            bottom: -82px;
+            left: 10px;
+        }
+        #top-link-block.affix {
+            position: fixed; /* keeps it on the bottom once in view */
+            bottom: 30px;
+            left: 30px;
+        }
+    </style>
+{% endblock %}
