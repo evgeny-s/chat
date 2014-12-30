@@ -418,7 +418,7 @@ a:focus {
 .leftpanel {
     width: 230px;
     position: fixed;
-    top: 0;
+    top: 60px;
     left: 0;
 }
 
