@@ -66,6 +66,10 @@
             if (Dispatcher.send_message) {
                 Dispatcher.send_message_data = $('#cabinet_chatbundle_message_text').val();
             }
+
+            if (Dispatcher.window_focus) {
+                Dispatcher.make_message_read = 1;
+            }
             $.ajax({
                 data: {
                     send_message : Dispatcher.send_message,
