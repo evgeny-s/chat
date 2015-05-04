@@ -16,10 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @Route("/cabinet")
  */
-
 class UserController extends Controller
 {
-
     /**
      * @Route("/profile", name="_cabinet_profile")
      * @Template("CabinetChatBundle:User:index.html.twig")

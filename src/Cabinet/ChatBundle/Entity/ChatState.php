@@ -81,7 +81,7 @@ class ChatState
      * @param \Cabinet\ChatBundle\Entity\User $sender
      * @return ChatState
      */
-    public function setSender(\Cabinet\ChatBundle\Entity\User $sender = null)
+    public function setSender(User $sender = null)
     {
         $this->Sender = $sender;
 
@@ -104,7 +104,7 @@ class ChatState
      * @param \Cabinet\ChatBundle\Entity\User $recipient
      * @return ChatState
      */
-    public function setRecipient(\Cabinet\ChatBundle\Entity\User $recipient = null)
+    public function setRecipient(User $recipient = null)
     {
         $this->Recipient = $recipient;
 

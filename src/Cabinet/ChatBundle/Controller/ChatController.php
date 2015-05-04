@@ -11,12 +11,10 @@ use Cabinet\ChatBundle\Entity\User;
 use Cabinet\ChatBundle\Form\MessageType;
 use Cabinet\ChatBundle\Entity\Message;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @Route("/cabinet")
  */
-
 class ChatController extends Controller
 {
 
@@ -38,6 +36,10 @@ class ChatController extends Controller
     /**
      * @Route("/messages/item/{id}", name="_cabinet_chat_item")
      * @Template("CabinetChatBundle:Messages:item.html.twig")
+     * @param         $id
+     * @param Request $request
+     *
+     * @return array|null|JsonResponse
      */
     public function itemAction($id, Request $request)
     {
@@ -51,7 +53,7 @@ class ChatController extends Controller
         $message = new Message();
         $form = $this->createForm(new MessageType(), $message);
 
-        $response = $this->processAjax($form, $message, $user, $current_user, $request);
+        $response = $this->processAjax($message, $user, $current_user, $request);
         if ($response) {
             return $response;
         }
@@ -68,7 +70,16 @@ class ChatController extends Controller
         );
     }
 
-    private function processAjax($form, $message, $user, $current_user, Request $request)
+    /**
+     * @param Message $message
+     * @param User    $user
+     * @param User    $current_user
+     * @param Request $request
+     *
+     * @return null|JsonResponse
+     * @internal param $form
+     */
+    private function processAjax(Message $message, User $user, User $current_user, Request $request)
     {
         if ($request->isXmlHttpRequest()) {
             $response = array();

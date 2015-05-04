@@ -76,52 +76,6 @@ class Message
     }
 
     /**
-     * Set idSender
-     *
-     * @param integer $idSender
-     * @return Message
-     */
-    public function setIdSender($idSender)
-    {
-        $this->idSender = $idSender;
-
-        return $this;
-    }
-
-    /**
-     * Get idSender
-     *
-     * @return integer 
-     */
-    public function getIdSender()
-    {
-        return $this->idSender;
-    }
-
-    /**
-     * Set idRecipient
-     *
-     * @param integer $idRecipient
-     * @return Message
-     */
-    public function setIdRecipient($idRecipient)
-    {
-        $this->idRecipient = $idRecipient;
-
-        return $this;
-    }
-
-    /**
-     * Get idRecipient
-     *
-     * @return integer 
-     */
-    public function getIdRecipient()
-    {
-        return $this->idRecipient;
-    }
-
-    /**
      * Set text
      *
      * @param string $text
@@ -219,7 +173,7 @@ class Message
      * @param \Cabinet\ChatBundle\Entity\User $sender
      * @return Message
      */
-    public function setSender(\Cabinet\ChatBundle\Entity\User $sender = null)
+    public function setSender(User $sender = null)
     {
         $this->Sender = $sender;
 
@@ -242,7 +196,7 @@ class Message
      * @param \Cabinet\ChatBundle\Entity\User $recipient
      * @return Message
      */
-    public function setRecipient(\Cabinet\ChatBundle\Entity\User $recipient = null)
+    public function setRecipient(User $recipient = null)
     {
         $this->Recipient = $recipient;
 

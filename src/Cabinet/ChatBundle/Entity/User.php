@@ -127,6 +127,7 @@ class User extends BaseUser
         unlink($this->getTmpUploadRootDir().$this->image);
     }
 
+
     public function removeImage()
     {
         unlink($this->getFullImagePath());

@@ -14,6 +14,7 @@ use Cabinet\ChatBundle\Entity\User;
 class MessageRepository extends EntityRepository
 {
     public function getBySenderAndRecipient(User $sender, User $recipient, $last_id = null, $get_all = null) {
+        $today = null;
         if (! $get_all) {
             $today = date('Y') . '-' . date('m') . '-' . date('d') .' 00:00:00';
         }
