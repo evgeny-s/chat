@@ -2,6 +2,7 @@
 
 namespace Cabinet\ChatBundle\Controller;
 
+use Cabinet\ChatBundle\Entity\ChatState;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -62,11 +63,12 @@ class ChatController extends Controller
         return array(
             'messages' => $oMessages,
             'form'     => $form->createView(),
-            'id'       => $id
+            'id'       => $id,
+            'sender'   => $user
         );
     }
 
-    private function processAjax($form, $message, $user, $current_user, $request)
+    private function processAjax($form, $message, $user, $current_user, Request $request)
     {
         if ($request->isXmlHttpRequest()) {
             $response = array();
@@ -76,6 +78,7 @@ class ChatController extends Controller
             $last_id = $request->get('last_id');
             $not_read_messages = $request->get('not_read_messages');
             $send_message_data = $request->get('send_message_data');
+            $typing = $request->get('typing');
             $status = 1;
             $messages_repo = $this->getDoctrine()->getRepository('CabinetChatBundle:Message');
 
@@ -91,6 +94,34 @@ class ChatController extends Controller
                     $em->flush();
                 }
                 $response["send_message"] = true;
+            }
+
+            $chatState = $this->getDoctrine()->getManager()->getRepository("CabinetChatBundle:ChatState")->findOneBy(array('Sender' => $current_user, 'Recipient' => $user));
+            if (! is_object($chatState)) {
+                $chatState = new ChatState();
+                $chatState->setRecipient($user);
+                $chatState->setSender($current_user);
+
+                $this->getDoctrine()->getManager()->persist($chatState);
+                $this->getDoctrine()->getManager()->flush();
+            }
+            if ($typing != $chatState->getTyping()) {
+                $chatState->setTyping($typing);
+                $this->getDoctrine()->getManager()->flush();
+            }
+            $reverseChatState = $this->getDoctrine()->getManager()->getRepository("CabinetChatBundle:ChatState")->findOneBy(array('Sender' => $user, 'Recipient' => $current_user));
+            if (! is_object($reverseChatState)) {
+                $reverseChatState = new ChatState();
+                $reverseChatState->setRecipient($user);
+                $reverseChatState->setSender($current_user);
+
+                $this->getDoctrine()->getManager()->persist($reverseChatState);
+                $this->getDoctrine()->getManager()->flush();
+            }
+            if ($reverseChatState->getTyping()) {
+                $toMeTyping = true;
+            } else {
+                $toMeTyping = false;
             }
 
             if ($make_message_read) {
@@ -114,6 +145,7 @@ class ChatController extends Controller
             $response["not_read_ids"] = $read_ids;
 
             $response["status"] = $status;
+            $response["to_me_typing"] = $toMeTyping;
             return new JsonResponse($response);
         } else {
             return null;

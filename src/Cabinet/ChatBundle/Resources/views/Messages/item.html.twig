@@ -19,6 +19,7 @@
             </a>
             <form action="" method="post" id="message_form">
                 <div class="media-body">
+                    <div class="typing hidden">{{ sender.username }} печатает...</div>
                     {{ form_row(form.text) }}
                     <button class="btn btn-primary btn-sm mt10" id="send_message_button"><i class="fa fa-send mr5"></i> Send</button>
                 </div>
@@ -47,9 +48,18 @@
             notification_is_read : 1,
             window_focus : 1,
             disabling_block : $(".disabling_block"),
-            global_chat_editor : {}
+            global_chat_editor : {},
+            typing_timer : null,
+            typing : 0
         };
         PNotify.desktop.permission();
+
+        Dispatcher.disable_timer = function() {
+            if (Dispatcher.typing_timer !== 'undefined') {
+                clearTimeout(Dispatcher.typing_timer);
+                Dispatcher.typing = 0;
+            }
+        };
 
         Dispatcher.dispatch = function () {
             Dispatcher.last_id = $(".message_collection .message_block").last().attr('m_id');
@@ -76,7 +86,8 @@
                     make_message_read : Dispatcher.make_message_read,
                     last_id: Dispatcher.last_id,
                     not_read_messages: Dispatcher.not_read_messages,
-                    send_message_data : Dispatcher.send_message_data
+                    send_message_data : Dispatcher.send_message_data,
+                    typing : Dispatcher.typing
                 },
                 url: "{{ path('_cabinet_chat_item', {'id' : id}) }}",
                 type: "post"
@@ -117,10 +128,16 @@
                             Dispatcher.send_message = 0;
                         }
 
+                        if (Boolean(data["to_me_typing"])) {
+                            $(".media-body .typing").removeClass("hidden");
+                        } else {
+                            $(".media-body .typing").addClass("hidden");
+                        }
+
                         setTimeout(Dispatcher.dispatch, 1000);
                     })
                     .error(function() {
-                        setTimeout(Dispatcher.dispatch, 1000);
+                        location.href="{{ path("_cabinet_chat_item", {"id": id}) }}";
                     });
         };
 
@@ -192,6 +209,14 @@
                     }
                 });
             });
+
+            Dispatcher.global_chat_editor.on('key', function () {
+                Dispatcher.typing = 1;
+                if (Dispatcher.typing_timer !== 'undefined') {
+                    clearTimeout(Dispatcher.typing_timer);
+                }
+                Dispatcher.typing_timer = setTimeout(Dispatcher.disable_timer, 1500);
+            } );
         });
     </script>
 {% endblock %}
@@ -246,6 +271,17 @@
             position: fixed; /* keeps it on the bottom once in view */
             bottom: 30px;
             left: 30px;
+        }
+
+        .media-body {
+            position: relative;
+        }
+
+        .typing {
+            position: absolute;
+            top: 0;
+            left: 100px;
+            color: #999;
         }
     </style>
 {% endblock %}
